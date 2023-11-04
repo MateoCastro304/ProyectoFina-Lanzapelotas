@@ -39,6 +39,17 @@ bool dato = 1;
 uint8_t macESP01[] = {0x84, 0xF3, 0xEB, 0x4C, 0xA0, 0xDF};
 uint8_t macWemos[] = {0x3C, 0x61, 0x05, 0xD1, 0xC2, 0x49};
 uint8_t macNodeMCU[] = {0xA4, 0xCF, 0x12, 0xC9, 0x91, 0x48};
+typedef struct ang{
+    float x;
+    float y;
+}ang;
+typedef struct dataWemos{
+    bool bat_ok;
+    bool hay_golpe;
+    int cant_golpes;
+    ang posicion_golpe;
+}dataWemos;
+dataWemos dataRecv;
 //*************************
 //*** Config. Librerias ***
 //*************************
@@ -55,18 +66,22 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 }
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("DATA RECEIVE");
-    //memcpy(&myData, incomingData, sizeof(myData));
+    memcpy(&dataRecv, incomingData, sizeof(dataRecv));
 
-    // String _buff = "Bytes received: "+ String(len) + "\nGolpes: "+ String(myData.golpes);
+    Serial.println((dataRecv.hay_golpe) ? "Golpe Efectuado":"");
+    String _buff = "Bytes received: "+ String(len) + "\nGolpes: "+ String(dataRecv.cant_golpes);
+    Serial.println(_buff);
+    delay(5);
+    Serial.print("Battery OK: ");
+    Serial.println((dataRecv.bat_ok) ? "True":"False");
+    
+    _buff = "Ang Golpe:     X:  "+ String(dataRecv.posicion_golpe.x) + "     Y: "+ String(dataRecv.posicion_golpe.y);
+    Serial.println(_buff);
+    delay(5);
+    // _buff = "Battery ADC: "+ String(dataRecv.valueBattery) + "\nAltitude: "+ String(dataRecv.altitude);
     // Serial.println(_buff);
     // delay(5);
-    // _buff = "Ang Golpe:     X:  "+ String(myData.anggolpe.x) + "     Y: "+ String(myData.anggolpe.y);
-    // Serial.println(_buff);
-    // delay(5);
-    // _buff = "Battery ADC: "+ String(myData.valueBattery) + "\nAltitude: "+ String(myData.altitude);
-    // Serial.println(_buff);
-    // delay(5);
-    // _buff = "Pressure: "+ String(myData.pressure) + "\nError: "+ String(myData.error);
+    // _buff = "Pressure: "+ String(dataRecv.pressure) + "\nError: "+ String(dataRecv.error);
     // Serial.println(_buff);
     // delay(5);
     // char ask[] = "NodeMCU: Structure Receive";
@@ -100,15 +115,24 @@ void setup() {
 
   //ESPMOW
   WiFi.mode(WIFI_STA);
-  Soft_BT.println(!esp_now_init() ? "ESPNOW Iniciado correctamente":"Error al iniciar ESPNOW");
+  // Soft_BT.println(!esp_now_init() ? "ESPNOW Iniciado correctamente":"Error al iniciar ESPNOW");
+
+  // esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+  // esp_now_register_send_cb(OnDataSent);
+  // esp_now_register_recv_cb(OnDataRecv);
+
+  // //ESPNOW PEER CONFIG
+  // Soft_BT.println((!esp_now_add_peer(macWemos, ESP_NOW_ROLE_COMBO, 1, NULL, 0)) ? "Peer añadido":"Peer no añadido");
+  // Soft_BT.println((esp_now_is_peer_exist(macWemos) > 0) ? "Wemos Encontrada":"No se encontró Wemos");
+  
+  Serial.println(!esp_now_init() ? "ESPNOW Iniciado correctamente":"Error al iniciar ESPNOW");
 
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-
-  //ESPNOW PEER CONFIG
-  Soft_BT.println((!esp_now_add_peer(macWemos, ESP_NOW_ROLE_COMBO, 1, NULL, 0)) ? "Peer añadido":"Peer no añadido");
-  Soft_BT.println((esp_now_is_peer_exist(macWemos) > 0) ? "Wemos Encontrada":"No se encontró Wemos");
+    //ESPNOW PEER CONFIG
+  Serial.println((!esp_now_add_peer(macWemos, ESP_NOW_ROLE_COMBO, 1, NULL, 0)) ? "Peer añadido":"Peer no añadido");
+  Serial.println((esp_now_is_peer_exist(macWemos) > 0) ? "Wemos Encontrada":"No se encontró Wemos");
 }
 
 void loop() {
@@ -125,9 +149,9 @@ void loop() {
     while(!Soft_BT.available()){
       int numAleatorio = random(65, 116); //65, 116 PING PONG
       // Controlar el servo ServoHorz con el valor aleatorio
-      ServoVert.write(numAleatorio);
+      ServoVert.write(60);
       // Mantener ServoVert en 60
-      ServoHorz.write(60);
+      ServoHorz.write(numAleatorio);
       // Establecer la velocidad de los motores PWM
       // Enviar los datos a través del puerto serie del Bluetooth
       Soft_BT.print("ServoHorz: ");
