@@ -14,7 +14,7 @@
 
 #define OPEN_GATE 80
 #define CLOSE_GATE 110
-#define TRESHOLD_BALL 100
+#define TRESHOLD_BALL 400
 
 void setPeripherals();
 

@@ -36,17 +36,20 @@ String formatFloat(float value, uint8_t totalWidth, int decimalPlaces) {
   return formatted;
 }
 
-void sendDataBT(bool launched,ang angulosRotacion){
+void sendDataBT(bool launched,float angulosRotacion_x, float angulosRotacion_y){
 
-    String strAngX = formatFloat(angulosRotacion.x, 7, 2); //Formatear floats para que tengan un largo de 7 (0000.00 o -000.00)
-    String strAngY = formatFloat(angulosRotacion.y, 7, 2);
+    String strAngX = String(angulosRotacion_x,2);//Formatear floats para que tengan un largo de 7 (0000.00 o -000.00)
+    String strAngY = String(angulosRotacion_y,2);
     //Serial.println(strAngX.c_str());
     //Serial.println(strAngY.c_str());
+    static bool dat = false;
+    dat =! dat;
     char data[19];
-    sprintf(data,"%d,%s,%s",launched,strAngY.c_str(),strAngX.c_str());
-    //Serial.println(data);
+    sprintf(data,"%s,%s,%d",strAngY.c_str(),strAngX.c_str(),dat);
+    Serial.println(data);
     //Serial.println(strAngX);
     //Serial.println(strAngY);
+    Soft_BT.print(data);
 }
 void receiveDataBT(String str, int *saveDat, int datalenght){
     if (str.charAt(0) == '{' && str.charAt(str.length() - 1) == '}') {
@@ -79,9 +82,14 @@ void loop() {
     if (datosNuevos())
     {
         datosPaleta = getDatosRecibidos();
-        sendDataBT(getLanzamientoCompletado(),datosPaleta.posicion_golpe);
+        Serial.println("Enviando Datos por BT: ");
+        sendDataBT(getLanzamientoCompletado(),datosPaleta.posicion_golpe_x,datosPaleta.posicion_golpe_y);
     }
-
+    if (getLanzamientoCompletado())
+    {
+        Soft_BT.print('a');
+    }
+    
     if (Soft_BT.available()){
         String str = Soft_BT.readStringUntil('.');
         receiveDataBT(str, data, dataLenght);

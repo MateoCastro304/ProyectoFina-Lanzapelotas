@@ -12,8 +12,10 @@ typedef struct ang{
 typedef struct dataWemos{
     bool bat_ok;
     bool hay_golpe;
+    bool error;
     int cant_golpes;
-    ang posicion_golpe;
+    float posicion_golpe_x;
+    float posicion_golpe_y;
 }dataWemos;
 
 void set_espnow();

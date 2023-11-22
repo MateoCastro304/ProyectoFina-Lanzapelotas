@@ -20,20 +20,35 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
     Serial.print("Sending... Delivery: ");
     Serial.println(!sendStatus ? "Success":"Fail");
 }
+
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("DATA RECEIVE");
     memcpy(&dataRecv, incomingData, sizeof(dataRecv));
     _datosActualizados = true;
+    
+    //Mostrar los datos recibidos
     Serial.println((dataRecv.hay_golpe) ? "Golpe Efectuado":"");
     String _buff = "Bytes received: "+ String(len) + "\nGolpes: "+ String(dataRecv.cant_golpes);
     Serial.println(_buff);
-    delay(5);
     Serial.print("Battery OK: ");
     Serial.println((dataRecv.bat_ok) ? "True":"False");
-    
-    _buff = "Ang Golpe:     X:  "+ String(dataRecv.posicion_golpe.x) + "     Y: "+ String(dataRecv.posicion_golpe.y);
+    _buff = "Ang Golpe:     X:  "+ String(dataRecv.posicion_golpe_x) + "     Y: "+ String(dataRecv.posicion_golpe_y);
     Serial.println(_buff);
-    delay(5);
+
+    if (isnan(dataRecv.posicion_golpe_x) || isnan(dataRecv.posicion_golpe_y))
+    {
+        char ret = 'n';
+        esp_now_send(macWemos, (u8*) &ret , sizeof(ret));
+    }else
+    {
+        char ret = 's';
+        esp_now_send(macWemos, (u8*) &ret , sizeof(ret));
+    }
+    
+    
+    
+    
+   
 }
 void set_espnow(){
     WiFi.mode(WIFI_STA);
